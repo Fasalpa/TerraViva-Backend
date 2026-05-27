@@ -1,13 +1,17 @@
 package com.terraviva.controller;
 
+import com.terraviva.dto.ClienteRequestDTO;
+import com.terraviva.dto.ClienteResponseDTO;
+import com.terraviva.exception.ResourceNotFoundException;
 import com.terraviva.model.Cliente;
 import com.terraviva.service.ClienteService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/clientes")
@@ -20,51 +24,79 @@ public class ClienteController {
     }
 
     @GetMapping
-    public List<Cliente> listar() {
-        return clienteService.findAll();
+    public List<ClienteResponseDTO> listar() {
+        return clienteService.findAll()
+                .stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Cliente> buscarPorId(@PathVariable Long id) {
-        Optional<Cliente> cliente = clienteService.findById(id);
-        return cliente.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ClienteResponseDTO> buscarPorId(@PathVariable Long id) {
+        Cliente cliente = clienteService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + id));
+        return ResponseEntity.ok(toResponseDTO(cliente));
     }
 
     @PostMapping
-    public ResponseEntity<?> guardar(@RequestBody Cliente cliente) {
-        if (clienteService.existsByEmail(cliente.getEmail())) {
-            return ResponseEntity.badRequest().body("El email ya está registrado");
+    public ResponseEntity<ClienteResponseDTO> crear(@Valid @RequestBody ClienteRequestDTO dto) {
+        if (clienteService.existsByEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("Ya existe un cliente con ese email");
         }
 
-        if (clienteService.existsByDocumento(cliente.getDocumento())) {
-            return ResponseEntity.badRequest().body("El documento ya está registrado");
+        if (clienteService.existsByDocumento(dto.getDocumento())) {
+            throw new IllegalArgumentException("Ya existe un cliente con ese documento");
         }
 
-        Cliente nuevo = clienteService.save(cliente);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
+        Cliente cliente = new Cliente();
+        cliente.setNombre(dto.getNombre());
+        cliente.setApellido(dto.getApellido());
+        cliente.setDocumento(dto.getDocumento());
+        cliente.setEmail(dto.getEmail());
+        cliente.setPassword(dto.getPassword());
+        cliente.setTelefono(dto.getTelefono());
+        cliente.setRol(dto.getRol());
+
+        Cliente guardado = clienteService.save(cliente);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponseDTO(guardado));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody Cliente cliente) {
-        Cliente actualizado = clienteService.update(id, cliente);
+    public ResponseEntity<ClienteResponseDTO> actualizar(@PathVariable Long id,
+                                                         @Valid @RequestBody ClienteRequestDTO dto) {
+        Cliente cliente = clienteService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + id));
 
-        if (actualizado == null) {
-            return ResponseEntity.notFound().build();
-        }
+        cliente.setNombre(dto.getNombre());
+        cliente.setApellido(dto.getApellido());
+        cliente.setDocumento(dto.getDocumento());
+        cliente.setEmail(dto.getEmail());
+        cliente.setPassword(dto.getPassword());
+        cliente.setTelefono(dto.getTelefono());
+        cliente.setRol(dto.getRol());
 
-        return ResponseEntity.ok(actualizado);
+        Cliente actualizado = clienteService.save(cliente);
+        return ResponseEntity.ok(toResponseDTO(actualizado));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        Optional<Cliente> cliente = clienteService.findById(id);
+        Cliente cliente = clienteService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + id));
 
-        if (cliente.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        clienteService.delete(id);
+        clienteService.delete(cliente.getIdCliente());
         return ResponseEntity.noContent().build();
+    }
+
+    private ClienteResponseDTO toResponseDTO(Cliente cliente) {
+        ClienteResponseDTO dto = new ClienteResponseDTO();
+        dto.setIdCliente(cliente.getIdCliente());
+        dto.setNombre(cliente.getNombre());
+        dto.setApellido(cliente.getApellido());
+        dto.setDocumento(cliente.getDocumento());
+        dto.setEmail(cliente.getEmail());
+        dto.setTelefono(cliente.getTelefono());
+        dto.setRol(cliente.getRol());
+        return dto;
     }
 }

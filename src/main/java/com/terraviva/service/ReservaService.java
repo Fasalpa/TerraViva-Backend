@@ -1,5 +1,7 @@
 package com.terraviva.service;
 
+import com.terraviva.exception.ReservaNoDisponibleException;
+import com.terraviva.exception.ResourceNotFoundException;
 import com.terraviva.model.Cliente;
 import com.terraviva.model.EstadoHabitacion;
 import com.terraviva.model.EstadoReserva;
@@ -51,26 +53,25 @@ public class ReservaService {
 
     public Reserva crearReserva(Long idCliente, Long idHabitacion, LocalDate fechaInicio, LocalDate fechaFin) {
         if (fechaInicio == null || fechaFin == null) {
-            return null;
+            throw new IllegalArgumentException("Las fechas no pueden ser nulas");
         }
 
         if (!fechaFin.isAfter(fechaInicio)) {
-            return null;
+            throw new IllegalArgumentException("La fecha de fin debe ser posterior a la fecha de inicio");
         }
 
-        Cliente cliente = clienteRepository.findById(idCliente).orElse(null);
-        Habitacion habitacion = habitacionRepository.findById(idHabitacion).orElse(null);
+        Cliente cliente = clienteRepository.findById(idCliente)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + idCliente));
 
-        if (cliente == null || habitacion == null) {
-            return null;
-        }
+        Habitacion habitacion = habitacionRepository.findById(idHabitacion)
+                .orElseThrow(() -> new ResourceNotFoundException("Habitación no encontrada con id: " + idHabitacion));
 
         List<Habitacion> disponibles = habitacionRepository.findDisponibles(fechaInicio, fechaFin);
         boolean habitacionDisponible = disponibles.stream()
                 .anyMatch(h -> h.getIdHabitacion().equals(idHabitacion));
 
         if (!habitacionDisponible) {
-            return null;
+            throw new ReservaNoDisponibleException("La habitación no está disponible en ese rango de fechas");
         }
 
         Reserva reserva = new Reserva();
@@ -89,11 +90,8 @@ public class ReservaService {
     }
 
     public Reserva cancelarReserva(Long idReserva) {
-        Reserva reserva = reservaRepository.findById(idReserva).orElse(null);
-
-        if (reserva == null) {
-            return null;
-        }
+        Reserva reserva = reservaRepository.findById(idReserva)
+                .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada con id: " + idReserva));
 
         reserva.setEstado(EstadoReserva.CANCELADA);
 
@@ -108,7 +106,10 @@ public class ReservaService {
     }
 
     public void delete(Long id) {
-        reservaRepository.deleteById(id);
+        Reserva reserva = reservaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada con id: " + id));
+
+        reservaRepository.delete(reserva);
     }
 
     private void calcularDatosReserva(Reserva reserva) {
