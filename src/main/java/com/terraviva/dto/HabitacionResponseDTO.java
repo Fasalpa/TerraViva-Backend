@@ -11,6 +11,11 @@ public class HabitacionResponseDTO {
     private String tipo;
     private BigDecimal precioNoche;
     private EstadoHabitacion estado;
+    private String descripcion;
+    private String imagen;
+    private Integer capacidad;
+    private String urlDetalle;
+    private Boolean visible;
 
     public HabitacionResponseDTO() {
     }
@@ -53,5 +58,45 @@ public class HabitacionResponseDTO {
 
     public void setEstado(EstadoHabitacion estado) {
         this.estado = estado;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public String getImagen() {
+        return imagen;
+    }
+
+    public void setImagen(String imagen) {
+        this.imagen = imagen;
+    }
+
+    public Integer getCapacidad() {
+        return capacidad;
+    }
+
+    public void setCapacidad(Integer capacidad) {
+        this.capacidad = capacidad;
+    }
+
+    public String getUrlDetalle() {
+        return urlDetalle;
+    }
+
+    public void setUrlDetalle(String urlDetalle) {
+        this.urlDetalle = urlDetalle;
+    }
+
+    public Boolean getVisible() {
+        return visible;
+    }
+
+    public void setVisible(Boolean visible) {
+        this.visible = visible;
     }
 }

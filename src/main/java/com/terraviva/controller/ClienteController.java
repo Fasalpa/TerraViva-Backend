@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,16 @@ public class ClienteController {
 
     public ClienteController(ClienteService clienteService) {
         this.clienteService = clienteService;
+    }
+
+    // Devuelve los datos del usuario autenticado usando el token JWT
+    // El "Principal" lo provee Spring Security automáticamente con el email del token
+    @GetMapping("/me")
+    public ResponseEntity<ClienteResponseDTO> obtenerPerfil(Principal principal) {
+        String email = principal.getName();
+        Cliente cliente = clienteService.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado: " + email));
+        return ResponseEntity.ok(toResponseDTO(cliente));
     }
 
     @GetMapping
@@ -43,7 +54,6 @@ public class ClienteController {
         if (clienteService.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("Ya existe un cliente con ese email");
         }
-
         if (clienteService.existsByDocumento(dto.getDocumento())) {
             throw new IllegalArgumentException("Ya existe un cliente con ese documento");
         }
@@ -83,7 +93,6 @@ public class ClienteController {
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         Cliente cliente = clienteService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + id));
-
         clienteService.delete(cliente.getIdCliente());
         return ResponseEntity.noContent().build();
     }

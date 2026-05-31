@@ -6,8 +6,10 @@ import com.terraviva.dto.RegisterRequestDTO;
 import com.terraviva.model.Cliente;
 import com.terraviva.repository.ClienteRepository;
 import com.terraviva.security.JwtService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AuthService {
@@ -25,19 +27,21 @@ public class AuthService {
     }
 
     public AuthResponseDTO register(RegisterRequestDTO request) {
-        if (clienteRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("El email ya está registrado");
+        String email = request.getEmail().trim().toLowerCase();
+
+        if (clienteRepository.existsByEmailIgnoreCase(email)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El email ya está registrado");
         }
 
         if (clienteRepository.existsByDocumento(request.getDocumento())) {
-            throw new RuntimeException("El documento ya está registrado");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El documento ya está registrado");
         }
 
         Cliente cliente = new Cliente();
         cliente.setNombre(request.getNombre());
         cliente.setApellido(request.getApellido());
         cliente.setDocumento(request.getDocumento());
-        cliente.setEmail(request.getEmail());
+        cliente.setEmail(email);
         cliente.setPassword(passwordEncoder.encode(request.getPassword()));
         cliente.setTelefono(request.getTelefono());
         cliente.setRol(request.getRol());
@@ -49,11 +53,13 @@ public class AuthService {
     }
 
     public AuthResponseDTO login(AuthRequestDTO request) {
-        Cliente cliente = clienteRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        String email = request.getEmail().trim().toLowerCase();
+
+        Cliente cliente = clienteRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
 
         if (!passwordEncoder.matches(request.getPassword(), cliente.getPassword())) {
-            throw new RuntimeException("Contraseña incorrecta");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Contraseña incorrecta");
         }
 
         String token = jwtService.generateToken(cliente.getEmail());

@@ -15,7 +15,7 @@ public class HabitacionRequestDTO {
     private String numero;
 
     @NotBlank(message = "El tipo de habitación es obligatorio")
-    @Size(max = 20, message = "El tipo no puede superar 20 caracteres")
+    @Size(max = 50, message = "El tipo no puede superar 50 caracteres")
     private String tipo;
 
     @NotNull(message = "El precio por noche es obligatorio")
@@ -24,6 +24,19 @@ public class HabitacionRequestDTO {
 
     @NotNull(message = "El estado es obligatorio")
     private EstadoHabitacion estado;
+
+    @Size(max = 500, message = "La descripción no puede superar 500 caracteres")
+    private String descripcion;
+
+    @Size(max = 255, message = "La imagen no puede superar 255 caracteres")
+    private String imagen;
+
+    private Integer capacidad;
+
+    @Size(max = 255, message = "La URL de detalle no puede superar 255 caracteres")
+    private String urlDetalle;
+
+    private Boolean visible;
 
     public HabitacionRequestDTO() {
     }
@@ -58,5 +71,45 @@ public class HabitacionRequestDTO {
 
     public void setEstado(EstadoHabitacion estado) {
         this.estado = estado;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public String getImagen() {
+        return imagen;
+    }
+
+    public void setImagen(String imagen) {
+        this.imagen = imagen;
+    }
+
+    public Integer getCapacidad() {
+        return capacidad;
+    }
+
+    public void setCapacidad(Integer capacidad) {
+        this.capacidad = capacidad;
+    }
+
+    public String getUrlDetalle() {
+        return urlDetalle;
+    }
+
+    public void setUrlDetalle(String urlDetalle) {
+        this.urlDetalle = urlDetalle;
+    }
+
+    public Boolean getVisible() {
+        return visible;
+    }
+
+    public void setVisible(Boolean visible) {
+        this.visible = visible;
     }
 }

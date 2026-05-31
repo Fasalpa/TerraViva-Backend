@@ -13,6 +13,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
@@ -24,9 +29,23 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://127.0.0.1:5500", "http://localhost:5500"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(false);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    AuthenticationProvider authenticationProvider) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -34,14 +53,21 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/error").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/habitaciones/**").hasAnyRole("ADMIN", "HUESPED")
+                        // Habitaciones públicas para GET (cualquier visitante puede verlas)
+                        .requestMatchers(HttpMethod.GET, "/api/habitaciones/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/habitaciones/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/habitaciones/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/habitaciones/**").hasRole("ADMIN")
 
+                        // /me debe ir ANTES de la regla general de clientes
+                        // para que HUESPED pueda ver su propio perfil
+                        .requestMatchers(HttpMethod.GET, "/api/clientes/me").hasAnyRole("ADMIN", "HUESPED")
+                        .requestMatchers(HttpMethod.PUT, "/api/clientes/me").hasAnyRole("ADMIN", "HUESPED")
+
+                        // Resto de clientes solo ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/clientes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/clientes/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/clientes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/clientes/**").hasAnyRole("ADMIN", "HUESPED")
                         .requestMatchers(HttpMethod.DELETE, "/api/clientes/**").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.GET, "/api/reservas/**").hasAnyRole("ADMIN", "HUESPED")

@@ -53,7 +53,9 @@ public class HabitacionService {
         return habitacionRepository.findByEstado(estado);
     }
 
+    /*
     public List<Habitacion> findDisponibles(LocalDate inicio, LocalDate fin) {
         return habitacionRepository.findDisponibles(inicio, fin);
     }
+    */
 }
