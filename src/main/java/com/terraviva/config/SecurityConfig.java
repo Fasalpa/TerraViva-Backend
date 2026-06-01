@@ -31,7 +31,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://127.0.0.1:5500", "http://localhost:5500"));
+        config.setAllowedOrigins(List.of(
+                "http://127.0.0.1:5500",
+                "http://localhost:5500",
+                "https://tu-frontend.onrender.com"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(false);
@@ -53,18 +57,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/error").permitAll()
 
-                        // Habitaciones públicas para GET (cualquier visitante puede verlas)
                         .requestMatchers(HttpMethod.GET, "/api/habitaciones/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/habitaciones/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/habitaciones/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/habitaciones/**").hasRole("ADMIN")
 
-                        // /me debe ir ANTES de la regla general de clientes
-                        // para que HUESPED pueda ver su propio perfil
                         .requestMatchers(HttpMethod.GET, "/api/clientes/me").hasAnyRole("ADMIN", "HUESPED")
                         .requestMatchers(HttpMethod.PUT, "/api/clientes/me").hasAnyRole("ADMIN", "HUESPED")
 
-                        // Resto de clientes solo ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/clientes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/clientes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/clientes/**").hasAnyRole("ADMIN", "HUESPED")
