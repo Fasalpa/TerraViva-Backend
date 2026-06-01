@@ -55,21 +55,36 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+
+                        // Swagger público para la presentación
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+
+                        // Auth y errores públicos
                         .requestMatchers("/api/auth/**", "/error").permitAll()
 
+                        // Habitaciones: GET público, resto solo ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/habitaciones/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/habitaciones/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/habitaciones/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/habitaciones/**").hasRole("ADMIN")
 
+                        // Perfil propio: ADMIN y HUESPED (debe ir antes de la regla general)
                         .requestMatchers(HttpMethod.GET, "/api/clientes/me").hasAnyRole("ADMIN", "HUESPED")
                         .requestMatchers(HttpMethod.PUT, "/api/clientes/me").hasAnyRole("ADMIN", "HUESPED")
 
+                        // Resto de clientes: solo ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/clientes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/clientes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/clientes/**").hasAnyRole("ADMIN", "HUESPED")
                         .requestMatchers(HttpMethod.DELETE, "/api/clientes/**").hasRole("ADMIN")
 
+                        // Reservas: ADMIN y HUESPED
                         .requestMatchers(HttpMethod.GET, "/api/reservas/**").hasAnyRole("ADMIN", "HUESPED")
                         .requestMatchers(HttpMethod.POST, "/api/reservas/**").hasAnyRole("ADMIN", "HUESPED")
                         .requestMatchers(HttpMethod.PUT, "/api/reservas/**").hasAnyRole("ADMIN", "HUESPED")
