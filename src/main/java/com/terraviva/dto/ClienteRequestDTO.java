@@ -25,7 +25,7 @@ public class ClienteRequestDTO {
     @Size(max = 100, message = "El email no puede superar 100 caracteres")
     private String email;
 
-    @NotBlank(message = "La contraseña es obligatoria")
+    // Sin @NotBlank para permitir actualizar perfil sin cambiar la contraseña
     @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     private String password;
 
@@ -35,62 +35,26 @@ public class ClienteRequestDTO {
     @NotNull(message = "El rol es obligatorio")
     private Rol rol;
 
-    public ClienteRequestDTO() {
-    }
+    public ClienteRequestDTO() {}
 
-    public String getNombre() {
-        return nombre;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+    public String getApellido() { return apellido; }
+    public void setApellido(String apellido) { this.apellido = apellido; }
 
-    public String getApellido() {
-        return apellido;
-    }
+    public String getDocumento() { return documento; }
+    public void setDocumento(String documento) { this.documento = documento; }
 
-    public void setApellido(String apellido) {
-        this.apellido = apellido;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getDocumento() {
-        return documento;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public void setDocumento(String documento) {
-        this.documento = documento;
-    }
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getTelefono() {
-        return telefono;
-    }
-
-    public void setTelefono(String telefono) {
-        this.telefono = telefono;
-    }
-
-    public Rol getRol() {
-        return rol;
-    }
-
-    public void setRol(Rol rol) {
-        this.rol = rol;
-    }
+    public Rol getRol() { return rol; }
+    public void setRol(Rol rol) { this.rol = rol; }
 }
