@@ -1,11 +1,13 @@
 package com.terraviva.controller;
 
+import com.terraviva.model.Habitacion;
 import com.terraviva.projection.HabitacionView;
 import com.terraviva.repository.HabitacionRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/habitaciones")
@@ -31,6 +33,27 @@ public class HabitacionController {
     public ResponseEntity<?> getById(@PathVariable Long id) {
         return habitacionRepository.findProjectedById(id)
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/{id}/visible")
+    public ResponseEntity<?> actualizarVisible(@PathVariable Long id, @RequestBody Map<String, Boolean> body) {
+        return habitacionRepository.findById(id)
+                .<ResponseEntity<?>>map(habitacion -> {
+                    Boolean visible = body.get("visible");
+
+                    if (visible == null) {
+                        return ResponseEntity.badRequest().body("El campo 'visible' es obligatorio");
+                    }
+
+                    habitacion.setVisible(visible);
+                    habitacionRepository.save(habitacion);
+
+                    return ResponseEntity.ok().body(Map.of(
+                            "idHabitacion", habitacion.getIdHabitacion(),
+                            "visible", habitacion.getVisible()
+                    ));
+                })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
