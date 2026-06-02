@@ -24,8 +24,6 @@ public class ClienteController {
         this.clienteService = clienteService;
     }
 
-    // Devuelve los datos del usuario autenticado usando el token JWT
-    // El "Principal" lo provee Spring Security automáticamente con el email del token
     @GetMapping("/me")
     public ResponseEntity<ClienteResponseDTO> obtenerPerfil(Principal principal) {
         String email = principal.getName();
@@ -72,8 +70,9 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ClienteResponseDTO> actualizar(@PathVariable Long id,
-                                                         @Valid @RequestBody ClienteRequestDTO dto) {
+    public ResponseEntity<ClienteResponseDTO> actualizar(
+            @PathVariable Long id,
+            @RequestBody ClienteRequestDTO dto) { // Sin @Valid para evitar validación de password
         Cliente cliente = clienteService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + id));
 
@@ -81,9 +80,13 @@ public class ClienteController {
         cliente.setApellido(dto.getApellido());
         cliente.setDocumento(dto.getDocumento());
         cliente.setEmail(dto.getEmail());
-        cliente.setPassword(dto.getPassword());
         cliente.setTelefono(dto.getTelefono());
         cliente.setRol(dto.getRol());
+
+        // Solo actualiza password si viene con valor de al menos 6 caracteres
+        if (dto.getPassword() != null && dto.getPassword().length() >= 6) {
+            cliente.setPassword(dto.getPassword());
+        }
 
         Cliente actualizado = clienteService.save(cliente);
         return ResponseEntity.ok(toResponseDTO(actualizado));
