@@ -9,7 +9,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/habitaciones")
-@CrossOrigin(origins = {"http://127.0.0.1:5500", "http://localhost:5500"})
+@CrossOrigin(origins = {
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
+        "https://handrymoran1.github.io"
+})
 public class HabitacionController {
 
     private final HabitacionRepository habitacionRepository;
@@ -21,6 +25,13 @@ public class HabitacionController {
     @GetMapping
     public ResponseEntity<List<HabitacionView>> getAll() {
         return ResponseEntity.ok(habitacionRepository.findAllProjected());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable Long id) {
+        return habitacionRepository.findProjectedById(id)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/test")
